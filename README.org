@@ -1,0 +1,178 @@
+#+TITLE: kbol - Knowledge Base from Technical Books
+#+AUTHOR: Jason Walsh
+#+EMAIL: j@wal.sh
+#+DATE: 2024-11-15
+#+PROPERTY: header-args :mkdirp yes
+#+PROPERTY: header-args:python :session kbol :results output
+#+PROPERTY: header-args:mermaid :file doc/images/flow.png
+
+* Overview
+A focused RAG (Retrieval Augmented Generation) system for programming books.
+
+#+begin_src mermaid :file doc/images/rag-flow.png
+flowchart LR
+    PDFs[Technical Books] --> Chunker[Text Chunker]
+    Chunker --> Embedder[Ollama Embedder]
+    Embedder --> VectorDB[(Vector DB)]
+    Query[User Query] --> Semantic[Semantic Search]
+    VectorDB --> Semantic
+    Semantic --> LLM[Ollama LLM]
+    LLM --> Response[Response]
+#+end_src
+
+* Development Environment
+** Prerequisites
+:PROPERTIES:
+:header-args:shell: :results output :exports both
+:END:
+
+#+begin_src shell :tangle .envrc
+use nix
+layout poetry
+#+end_src
+
+#+begin_src nix :tangle shell.nix
+{ pkgs ? import <nixpkgs> {} }:
+
+pkgs.mkShell {
+  buildInputs = with pkgs; [
+    python311
+    poetry
+    postgresql_15
+    ollama
+    ripgrep
+  ];
+
+  shellHook = ''
+    export PYTHONPATH="$PWD:$PYTHONPATH"
+    export DATABASE_URL="postgresql://localhost:5432/kbol_db"
+    
+    if [ ! -f "poetry.lock" ]; then
+      poetry install
+    fi
+  '';
+}
+#+end_src
+
+** Quick Start
+:PROPERTIES:
+:header-args:bash: :results output :exports both
+:END:
+
+#+begin_src bash :tangle scripts/setup.sh
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Enter development environment
+nix-shell
+
+# Initialize services
+docker-compose up -d
+
+# Link books
+./scripts/link_books.sh
+
+# Run demo
+./scripts/demo.sh
+#+end_src
+
+** Project Structure
+#+begin_src mermaid :file doc/images/structure.png
+graph TD
+    Root[kbol/] --> Data[data/]
+    Root --> Src[src/]
+    Root --> Tests[tests/]
+    Root --> Scripts[scripts/]
+    
+    Data --> Books[books/]
+    Data --> Processed[processed/]
+    
+    Src --> Indexer[indexer.py]
+    Src --> CLI[cli.py]
+    Src --> DB[db/]
+    
+    Scripts --> Demo[demo.sh]
+    Scripts --> Setup[setup.sh]
+    Scripts --> Link[link_books.sh]
+#+end_src
+
+* Usage
+** Processing Books
+:PROPERTIES:
+:header-args:python: :results output :exports both
+:END:
+
+#+begin_src python
+from kbol.indexer import BookIndexer
+from pathlib import Path
+
+indexer = BookIndexer()
+books_dir = Path("data/books")
+results = await indexer.process_books(books_dir)
+print(f"Processed {len(results)} chunks")
+#+end_src
+
+** Example Queries
+#+begin_src bash
+# Query about specific topics
+poetry run python -m kbol query "Explain monads from the functional programming books"
+
+# Find code examples
+poetry run python -m kbol query "Show me Clojure examples of map and reduce"
+
+# Compare concepts
+poetry run python -m kbol query "Compare Python and Clojure approaches to immutability"
+#+end_src
+
+* Implementation Details
+** Vector Database Schema
+#+begin_src sql :tangle src/kbol/db/schema.sql
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE IF NOT EXISTS book_chunks (
+    id SERIAL PRIMARY KEY,
+    book_title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    embedding vector(384),
+    page_number INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS book_chunks_embedding_idx ON book_chunks 
+USING ivfflat (embedding vector_cosine_ops);
+#+end_src
+
+** Processing Pipeline
+#+begin_src mermaid :file doc/images/pipeline.png
+sequenceDiagram
+    participant PDF as PDF Books
+    participant Chunker as Text Chunker
+    participant Embedder as Ollama Embedder
+    participant DB as Vector DB
+    
+    PDF->>Chunker: Raw Text
+    Chunker->>Chunker: Split into Chunks
+    loop Each Chunk
+        Chunker->>Embedder: Text Chunk
+        Embedder->>Embedder: Generate Embedding
+        Embedder->>DB: Store Chunk + Embedding
+    end
+#+end_src
+
+* Development
+** Running Tests
+#+begin_src bash
+poetry run pytest
+#+end_src
+
+** Local Development
+1. Start nix shell: ~nix-shell~
+2. Start services: ~docker-compose up -d~
+3. Run tests: ~make test~
+4. Process books: ~make process-books~
+
+* License
+MIT
+
+* Author
+Jason Walsh ([[https://wal.sh][https://wal.sh]])

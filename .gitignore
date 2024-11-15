@@ -1,0 +1,8 @@
+.env
+*.pyc
+__pycache__
+.venv
+data/books/*
+data/processed/*
+!data/books/.gitkeep
+!data/processed/.gitkeep

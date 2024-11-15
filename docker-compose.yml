@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  db:
+    image: ankane/pgvector:latest
+    environment:
+      POSTGRES_DB: kbol_db
+      POSTGRES_USER: kbol_user
+      POSTGRES_PASSWORD: kbol_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    command: >
+      sh -c "ollama serve & 
+             sleep 10 && 
+             ollama pull nomic-embed-text && 
+             ollama pull phi3 && 
+             wait"
+
+volumes:
+  postgres_data:
+  ollama_data:
