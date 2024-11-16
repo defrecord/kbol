@@ -1,4 +1,6 @@
-from .cli import app
+from .cli.app import init_app
+
+app = init_app()
 
 if __name__ == "__main__":
     app()

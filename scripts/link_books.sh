@@ -8,7 +8,7 @@ TARGET_DIR="data/books"
 for book in "${BOOKS_PATH}"/*.pdf; do
   filename=$(basename "$book")
   case $filename in
-    *"Clojure"*|*"Python"*|*"Functional"*|*"Programming"*)
+    *"Clojure"*|*"Python"*|*"Functional"*|*"Programming"*|*"mit"*)
       ln -sf "$book" "$TARGET_DIR/$filename"
       echo "Linked: $filename"
       ;;

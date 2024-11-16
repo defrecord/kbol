@@ -34,15 +34,27 @@ async def get_completion(
 ) -> str:
     """Get completion from Ollama."""
     async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{url}/api/generate",
-            json={
-                "model": "phi3",
-                "prompt": f"Context:\n{context}\n\nQuestion: {prompt}\n\nAnswer:",
-                "stream": False,
-            },
-        )
-        return response.json()["response"]
+        try:
+            response = await client.post(
+                f"{url}/api/generate",
+                json={
+                    "model": "phi3",
+                    "prompt": f"Context:\n{context}\n\nQuestion: {prompt}\n\nAnswer:",
+                    "stream": False,
+                },
+                timeout=60.0,  # Add timeout
+            )
+            response.raise_for_status()  # Raise for bad HTTP status
+            data = response.json()
+            if "error" in data:
+                raise Exception(f"Ollama error: {data['error']}")
+            return data["response"]
+        except httpx.TimeoutError:
+            raise Exception("Ollama request timed out after 60 seconds")
+        except httpx.HTTPError as e:
+            raise Exception(f"HTTP error occurred: {str(e)}")
+        except Exception as e:
+            raise Exception(f"Error getting completion: {str(e)}")
 
 
 def cosine_similarity(a: List[float], b: List[float]) -> float:
@@ -69,9 +81,6 @@ async def search_chunks(query: str, top_k: int = 5) -> List[Dict]:
 
     # Sort by similarity
     return sorted(all_chunks, key=lambda x: x["similarity"], reverse=True)[:top_k]
-
-
-# ... (rest of the file remains the same, but process command should also be updated)
 
 
 @app.command()
@@ -185,12 +194,21 @@ def query(
     model: str = typer.Option(
         "phi3", "--model", "-m", help="Ollama model to use for response"
     ),
+    temperature: float = typer.Option(
+        0.7, "--temperature", "-t", help="Model temperature (0.0-1.0)", min=0.0, max=1.0
+    ),
 ):
-    """Query the knowledge base."""
+    """Query the knowledge base.
+
+    Examples:
+        kbol query "Explain monads in Clojure"
+        kbol query --book "Python" --show-context "How to handle exceptions?"
+        kbol query --model llama2 "Compare Python and Clojure immutability"
+    """
 
     async def query_impl():
         try:
-            with console.status("[cyan]Searching knowledge base...[/cyan]"):
+            with console.status("[cyan]Searching knowledge base...[/cyan]") as status:
                 # Get relevant chunks
                 chunks = await search_chunks(question, top_k)
                 if not chunks:
@@ -222,7 +240,8 @@ def query(
 
                     similarity = chunk["similarity"] * 100
                     context_parts.append(
-                        f"From {chunk['book']}, page {chunk['page']} (relevance: {similarity:.1f}%):\n{chunk['content']}"
+                        f"From {chunk['book']}, page {chunk['page']} "
+                        f"(relevance: {similarity:.1f}%):\n{chunk['content']}"
                     )
                 context = "\n\n".join(context_parts)
 
@@ -231,14 +250,29 @@ def query(
                     console.print(Panel(context, title="Context", border_style="blue"))
 
                 # Get answer from Ollama
-                console.print("\n[cyan]Generating response...[/cyan]")
-                answer = await get_completion(question, context)
-                console.print(
-                    Panel(Markdown(answer), title="Answer", border_style="green")
-                )
+                status.update("[cyan]Generating response...[/cyan]")
+                try:
+                    answer = await get_completion(
+                        question, context, model=model, temperature=temperature
+                    )
+                    console.print(
+                        Panel(Markdown(answer), title="Answer", border_style="green")
+                    )
+                except Exception as e:
+                    console.print(f"[red]Error generating response: {str(e)}[/red]")
+                    if show_context:
+                        console.print("\n[yellow]Retrieved context was:[/yellow]")
+                        console.print(
+                            Panel(context, title="Context", border_style="yellow")
+                        )
+                    console.print(
+                        "\n[yellow]Try adjusting the model parameters or checking "
+                        "Ollama status[/yellow]"
+                    )
+                    return
 
         except Exception as e:
-            console.print(f"[red]Error during query: {e}[/red]")
+            console.print(f"[red]Error during query: {str(e)}[/red]")
             raise typer.Exit(1)
 
     run_async(query_impl())

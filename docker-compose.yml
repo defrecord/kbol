@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: ankane/pgvector:latest
@@ -12,19 +10,5 @@ services:
     ports:
       - "5432:5432"
 
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    command: >
-      sh -c "ollama serve & 
-             sleep 10 && 
-             ollama pull nomic-embed-text && 
-             ollama pull phi3 && 
-             wait"
-
 volumes:
   postgres_data:
-  ollama_data:
