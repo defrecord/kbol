@@ -7,14 +7,12 @@ pkgs.mkShell {
     postgresql_15
     ollama
     ripgrep
+    direnv
   ];
 
   shellHook = ''
+    eval $(direnv export bash)
     export PYTHONPATH="$PWD:$PYTHONPATH"
-    export DATABASE_URL="postgresql://localhost:5432/kbol_db"
-    
-    if [ ! -f "poetry.lock" ]; then
-      poetry install
-    fi
+    export DIRENV_LOG_FORMAT=""
   '';
 }

@@ -2,8 +2,11 @@ import httpx
 from typing import List
 import asyncio
 
+
 class Embedder:
-    def __init__(self, url: str = "http://localhost:11434", model: str = "nomic-embed-text"):
+    def __init__(
+        self, url: str = "http://localhost:11434", model: str = "nomic-embed-text"
+    ):
         self.url = url
         self.model = model
 

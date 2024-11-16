@@ -7,6 +7,7 @@ from ...indexer import BookIndexer
 
 console = Console()
 
+
 async def process_impl(
     books_dir: Path,
     chunk_size: int,
@@ -15,9 +16,7 @@ async def process_impl(
 ):
     """Implementation of process command."""
     indexer = BookIndexer(
-        embed_model=model,
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap
+        embed_model=model, chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
 
     try:
@@ -30,8 +29,10 @@ async def process_impl(
         console.print(f"[red]Error processing books: {str(e)}[/red]")
         raise typer.Exit(1)
 
+
 def register(app: typer.Typer):
     """Register process command with the CLI app."""
+
     @app.command()
     def process(
         books_dir: Path = typer.Argument(
@@ -49,15 +50,17 @@ def register(app: typer.Typer):
         ),
     ):
         """Process PDFs into chunks with embeddings.
-        
+
         Examples:
             kbol process
             kbol process --chunk-size 256 --overlap 25
             kbol process --model nomic-embed-text data/books
         """
-        asyncio.run(process_impl(
-            books_dir=books_dir,
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            model=model,
-        ))
+        asyncio.run(
+            process_impl(
+                books_dir=books_dir,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                model=model,
+            )
+        )

@@ -6,8 +6,10 @@ from rich.table import Table
 
 console = Console()
 
+
 def register(app: typer.Typer):
     """Register stats command with the CLI app."""
+
     @app.command()
     def stats():
         """Show statistics about processed books."""
@@ -45,7 +47,7 @@ def register(app: typer.Typer):
                         json_file.stem,
                         str(chunk_count),
                         f"{token_count:,}",
-                        str(avg_chunk)
+                        str(avg_chunk),
                     )
 
                     total_chunks += chunk_count

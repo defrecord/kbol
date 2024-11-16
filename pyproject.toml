@@ -16,6 +16,7 @@ tiktoken = "^0.8.0"
 files-to-prompt = "^0.4"
 typer = "^0.9.0"
 numpy = "^2.1.3"
+black = "^24.10.0"
 
 [build-system]
 requires = ["poetry-core"]

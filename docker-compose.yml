@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: ankane/pgvector:latest
@@ -9,6 +11,19 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kbol_user -d kbol_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Optional adminer for database management
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
 
 volumes:
   postgres_data:

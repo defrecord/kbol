@@ -1,5 +1,6 @@
 from rich import progress
 
+
 def create_progress() -> progress.Progress:
     """Create a progress bar with standard formatting."""
     return progress.Progress(

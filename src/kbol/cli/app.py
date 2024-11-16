@@ -8,19 +8,21 @@ app = typer.Typer(
 )
 console = Console()
 
+
 def init_app():
     """Initialize CLI application."""
     # Import commands here to avoid circular imports
     from .commands import process, query, stats, list, validate
-    
+
     # Register commands
     process.register(app)
     query.register(app)
     stats.register(app)
     list.register(app)
     validate.register(app)
-    
+
     return app
+
 
 # For direct use
 app = init_app()

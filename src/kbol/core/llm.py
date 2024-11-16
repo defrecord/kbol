@@ -1,6 +1,7 @@
 import httpx
 from typing import Optional
 
+
 async def get_completion(
     prompt: str,
     context: str,
@@ -9,7 +10,7 @@ async def get_completion(
     temperature: float = 0.7,
 ) -> str:
     """Get completion from Ollama.
-    
+
     Args:
         prompt: Question to ask
         context: Context to use
@@ -27,7 +28,7 @@ async def get_completion(
                     "stream": False,
                     "options": {
                         "temperature": temperature,
-                    }
+                    },
                 },
                 timeout=60.0,
             )

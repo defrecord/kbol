@@ -4,6 +4,7 @@ from rich.console import Console
 
 console = Console()
 
+
 def run_async(coro):
     """Helper to run async functions in the CLI."""
     try:

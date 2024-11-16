@@ -3,6 +3,7 @@ import json
 from typing import List, Dict
 from .embedding import get_embedding, cosine_similarity
 
+
 async def search_chunks(
     query: str,
     top_k: int = 5,
@@ -27,9 +28,10 @@ async def search_chunks(
 
         # Filter and sort by similarity
         relevant_chunks = [
-            c for c in all_chunks
-            if c["similarity"] > similarity_threshold
+            c for c in all_chunks if c["similarity"] > similarity_threshold
         ]
-        return sorted(relevant_chunks, key=lambda x: x["similarity"], reverse=True)[:top_k]
+        return sorted(relevant_chunks, key=lambda x: x["similarity"], reverse=True)[
+            :top_k
+        ]
     except Exception as e:
         raise Exception(f"Error searching chunks: {str(e)}")
