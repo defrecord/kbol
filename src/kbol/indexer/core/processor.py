@@ -1,41 +1,42 @@
-import httpx
 from pathlib import Path
 from pypdf import PdfReader
-from typing import List, Dict, Iterator, Callable, Optional
-import asyncio
-import tiktoken
+from typing import List, Dict
 import json
 from datetime import datetime
-from rich.progress import (
-    Progress,
-    TextColumn,
-    BarColumn,
-    TimeElapsedColumn,
-    TimeRemainingColumn,
-)
 from rich.console import Console
 from rich.panel import Panel
-from rich.layout import Layout
-import asyncio
+from rich import progress
+from rich.progress import Progress  # Add this for type hints
 
+from .chunker import TextChunker
+from .embedder import Embedder
+from ..utils.progress import create_progress
 
 class BookIndexer:
     def __init__(
         self,
-        ollama_url: str = "http://localhost:11434",
+        *,  # Force keyword arguments
         embed_model: str = "nomic-embed-text",
+        ollama_url: str = "http://localhost:11434",
         chunk_size: int = 512,
         chunk_overlap: int = 50,
-        batch_size: int = 10,  # Number of chunks to embed at once
+        batch_size: int = 10,
         max_retries: int = 3,
     ):
-        self.ollama_url = ollama_url
-        self.embed_model = embed_model
-        self.chunk_size = chunk_size
-        self.chunk_overlap = chunk_overlap
+        """Initialize BookIndexer.
+        
+        Args:
+            embed_model: Name of the Ollama model to use for embeddings
+            ollama_url: URL of the Ollama server
+            chunk_size: Target size of text chunks in tokens
+            chunk_overlap: Number of tokens to overlap between chunks
+            batch_size: Number of chunks to process at once
+            max_retries: Maximum number of retries for failed operations
+        """
+        self.chunker = TextChunker(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        self.embedder = Embedder(url=ollama_url, model=embed_model)
         self.batch_size = batch_size
         self.max_retries = max_retries
-        self.tokenizer = tiktoken.get_encoding("cl100k_base")
         self.console = Console()
         self.stats = {
             "total_chunks": 0,
@@ -44,38 +45,18 @@ class BookIndexer:
             "processed_books": 0,
         }
 
-    async def get_embeddings_batch(self, texts: List[str]) -> List[List[float]]:
-        """Get embeddings for a batch of texts."""
-        async with httpx.AsyncClient() as client:
-            tasks = []
-            for text in texts:
-                task = client.post(
-                    f"{self.ollama_url}/api/embeddings",
-                    json={"model": self.embed_model, "prompt": text},
-                    timeout=30.0,
-                )
-                tasks.append(task)
-
-            responses = await asyncio.gather(*tasks, return_exceptions=True)
-            embeddings = []
-
-            for response in responses:
-                if isinstance(response, Exception):
-                    embeddings.append(None)
-                else:
-                    result = response.json()
-                    embeddings.append(result.get("embedding"))
-
-            return embeddings
-
-    async def process_pdf(self, pdf_path: Path, progress: Progress) -> List[Dict]:
+    async def process_pdf(self, pdf_path: Path, progress_bar: Progress) -> List[Dict]:
         """Process a single PDF file with detailed progress tracking."""
         chunks = []
-        current_batch = []
         reader = PdfReader(pdf_path)
+        output_path = Path("data/processed") / f"{pdf_path.stem}.json"
+        temp_path = output_path.with_suffix('.tmp.json')
 
         # Setup progress bars
-        main_task = progress.add_task(f"[cyan]{pdf_path.name}", total=len(reader.pages))
+        main_task = progress_bar.add_task(
+            f"[cyan]{pdf_path.name}[/cyan]", 
+            total=len(reader.pages)
+        )
 
         try:
             for page_num, page in enumerate(reader.pages, 1):
@@ -83,12 +64,12 @@ class BookIndexer:
                 if not text.strip():
                     continue
 
-                page_chunks = list(self.chunk_text(text))
+                page_chunks = self.chunker.chunk_text(text)
 
                 # Process in batches
                 for i in range(0, len(page_chunks), self.batch_size):
                     batch = page_chunks[i : i + self.batch_size]
-                    embeddings = await self.get_embeddings_batch(batch)
+                    embeddings = await self.embedder.get_embeddings_batch(batch)
 
                     for chunk_text, embedding in zip(batch, embeddings):
                         if embedding is not None:
@@ -97,7 +78,7 @@ class BookIndexer:
                                 "page": page_num,
                                 "content": chunk_text,
                                 "embedding": embedding,
-                                "token_count": len(self.tokenizer.encode(chunk_text)),
+                                "token_count": len(self.chunker.tokenizer.encode(chunk_text)),
                                 "processed_at": datetime.now().isoformat(),
                             }
                             chunks.append(chunk)
@@ -106,28 +87,29 @@ class BookIndexer:
                         else:
                             self.stats["failed_chunks"] += 1
 
-                progress.update(main_task, advance=1)
+                progress_bar.update(main_task, advance=1)
 
                 # Save intermediate results every 10 pages
                 if page_num % 10 == 0:
-                    output_path = (
-                        Path("data/processed") / f"{pdf_path.stem}_partial.json"
-                    )
-                    with open(output_path, "w") as f:
+                    with open(temp_path, "w") as f:
                         json.dump(chunks, f, indent=2)
 
             # Save final results
-            output_path = Path("data/processed") / f"{pdf_path.stem}.json"
             with open(output_path, "w") as f:
                 json.dump(chunks, f, indent=2)
+            
+            # Remove temp file
+            temp_path.unlink(missing_ok=True)
 
             self.stats["processed_books"] += 1
 
         except Exception as e:
             self.console.print(f"[red]Error processing {pdf_path.name}: {e}[/red]")
+            # Clean up temp file on error
+            temp_path.unlink(missing_ok=True)
             raise
         finally:
-            progress.remove_task(main_task)
+            progress_bar.remove_task(main_task)
 
         return chunks
 
@@ -139,17 +121,10 @@ class BookIndexer:
             return []
 
         all_chunks = []
-        with Progress(
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-            TimeElapsedColumn(),
-            TimeRemainingColumn(),
-            console=self.console,
-        ) as progress:
+        with create_progress() as progress_bar:
             for pdf_file in pdf_files:
                 try:
-                    chunks = await self.process_pdf(pdf_file, progress)
+                    chunks = await self.process_pdf(pdf_file, progress_bar)
                     all_chunks.extend(chunks)
                 except Exception as e:
                     self.console.print(
@@ -160,16 +135,19 @@ class BookIndexer:
                     )
 
         # Print final statistics
-        self.console.print(
-            Panel(
-                f"""[green]Processing Complete[/green]
-            • Processed Books: {self.stats['processed_books']}/{len(pdf_files)}
-            • Total Chunks: {self.stats['total_chunks']}
-            • Total Tokens: {self.stats['total_tokens']:,}
-            • Failed Chunks: {self.stats['failed_chunks']}
-            • Average Chunk Size: {self.stats['total_tokens'] / self.stats['total_chunks']:.0f} tokens""",
-                title="Statistics",
+        if self.stats["total_chunks"] > 0:
+            self.console.print(
+                Panel(
+                    f"""[green]Processing Complete[/green]
+                    • Processed Books: {self.stats['processed_books']}/{len(pdf_files)}
+                    • Total Chunks: {self.stats['total_chunks']}
+                    • Total Tokens: {self.stats['total_tokens']:,}
+                    • Failed Chunks: {self.stats['failed_chunks']}
+                    • Average Chunk Size: {self.stats['total_tokens'] / self.stats['total_chunks']:.0f} tokens""",
+                    title="Statistics",
+                )
             )
-        )
+        else:
+            self.console.print("[yellow]No chunks were processed successfully.[/yellow]")
 
         return all_chunks
