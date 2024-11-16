@@ -1,8 +1,55 @@
-.env
-*.pyc
-__pycache__
-.venv
-data/books/*
-data/processed/*
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Project Data
+data/
 !data/books/.gitkeep
 !data/processed/.gitkeep
+
+# IDEs and Editors
+## VSCode
+.vscode/
+*.code-workspace
+
+## PyCharm
+.idea/
+*.iml
+*.iws
+
+## Emacs
+*~
+\#*\#
+.\#*
+*.elc
+
+## Vim
+*.swp
+*.swo
+
+# Environment
+.env
+.envrc
+.python-version
+
+# Dependencies
+poetry.lock
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
