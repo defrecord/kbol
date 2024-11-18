@@ -10,16 +10,51 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 import shutil
 
-# Manual definitions with stable URLs
 MANUALS = {
-    # GNU Emacs & Related
+    # GNU Manuals (original)
     "emacs_manual.pdf": "https://www.gnu.org/software/emacs/manual/pdf/emacs.pdf",
     "elisp_manual.pdf": "https://www.gnu.org/software/emacs/manual/pdf/elisp.pdf",
     "org-mode_manual.pdf": "https://orgmode.org/org.pdf",
-    
-    # GNU Programming Languages & Tools
     "guile_manual.pdf": "https://www.gnu.org/software/guile/manual/guile.pdf",
     "make_manual.pdf": "https://www.gnu.org/software/make/manual/make.pdf",
+
+    # Logic & Philosophy of Mathematics
+    "frege_foundations.pdf": "https://archive.org/download/basisarithmetic00freg/basisarithmetic00freg.pdf", # Basic Laws of Arithmetic
+    "russell_principia.pdf": "https://archive.org/download/principiamathemat01whituoft/principiamathemat01whituoft.pdf",
+    "wittgenstein_tractatus.pdf": "https://people.umass.edu/klement/tlp/tlp.pdf",
+    "godel_completeness.pdf": "https://archive.org/download/GodelOnFormallyUndecidablePropositionsOfPrincipiaMathematicaAndRelatedSystems/Godel-OnFormallyUndecidablePropositionsOfPrincipiaMathematicaAndRelatedSystems.pdf",
+    "church_calculus.pdf": "https://archive.org/download/TheCalculiOfLambdaConversionChurchA/The_Calculi_of_Lambda-Conversion_Church_A.pdf",
+    "turing_computing.pdf": "https://archive.org/download/B-001-001-251/B-001-001-251.pdf",  # On Computable Numbers
+
+    # Philosophy of Science
+    "einstein_relativity.pdf": "https://www.gutenberg.org/files/5001/5001-pdf.pdf",  # Relativity: Special and General Theory
+    "popper_logic.pdf": "https://archive.org/download/PopperLogicOfScientificDiscovery/Popper-Logic_of_scientific_discovery.pdf",
+    "kuhn_structure.pdf": "https://archive.org/download/structure-of-scientific-revolutions-2nd-edition/structure-of-scientific-revolutions-2nd-edition.pdf",
+    
+    # Early Modern Philosophy
+    "plato_republic.pdf": "https://www.gutenberg.org/files/1497/1497-pdf.pdf",
+    "aristotle_ethics.pdf": "https://www.gutenberg.org/files/8438/8438-pdf.pdf",
+    "meditations_aurelius.pdf": "https://www.gutenberg.org/files/2680/2680-pdf.pdf",
+    "kant_critique_pure_reason.pdf": "https://www.gutenberg.org/files/4280/4280-pdf.pdf",
+    "hume_enquiry.pdf": "https://www.gutenberg.org/files/9662/9662-pdf.pdf",
+
+    # Contemporary Foundational Works
+    "quine_two_dogmas.pdf": "https://archive.org/download/QuineTwoDogmasOfEmpiricism/Quine-TwoDogmasOfEmpiricism.pdf",
+    "kripke_naming.pdf": "https://archive.org/download/NamingAndNecessity/Kripke%20-%20Naming%20and%20Necessity.pdf",
+    "putnam_reason.pdf": "https://archive.org/download/PutnamReasonTruthAndHistory/Putnam%20-%20Reason%2C%20Truth%20and%20History.pdf",
+    "davidson_essays.pdf": "https://archive.org/download/DavidsonEssaysOnActionsAndEvents/Davidson%20-%20Essays%20on%20Actions%20and%20Events.pdf",
+
+    
+    # Contemporary Philosophy
+    "arendt_human_condition.pdf": "https://archive.org/download/ArendtHannahTheHumanCondition2nd1998/Arendt_Hannah_The_Human_Condition_2nd_1998.pdf",
+    "foucault_discipline_punish.pdf": "https://archive.org/download/michel-foucault-discipline-and-punish/michel-foucault-discipline-and-punish.pdf",
+    "rawls_theory_justice.pdf": "https://archive.org/download/TheoryOfJustice/john%20rawls%20-%20a%20theory%20of%20justice.pdf",
+    
+
+    # Literature (foundational)
+    "dante_inferno.pdf": "https://www.gutenberg.org/files/1001/1001-pdf.pdf",
+    "odyssey_homer.pdf": "https://www.gutenberg.org/files/3160/3160-pdf.pdf",
+    "shakespeare_hamlet.pdf": "https://www.gutenberg.org/files/1524/1524-pdf.pdf"
 }
 
 console = Console()
