@@ -60,17 +60,60 @@ print(f"Processed {len(results)} chunks")
 #+end_src
 
 ** Example Queries
+:PROPERTIES:
+:header-args:bash: :tangle scripts/example_queries.sh :mkdirp yes :comments org
+:END:
+
+Below are powerful example queries that leverage the diverse technical and theoretical knowledge in the book collection:
+
+*** Technical Architecture Queries
 #+begin_src bash
-# Query about specific topics
-poetry run python -m kbol query "Explain monads from the functional programming books"
-
-# Find code examples
-poetry run python -m kbol query "Show me Clojure examples of map and reduce"
-
-# Compare concepts
-poetry run python -m kbol query "Compare Python and Clojure approaches to immutability"
+# Technical Architecture Patterns
+poetry run python -m kbol query "Compare event-driven, flow-based, and microservice architectural patterns"
+poetry run python -m kbol query "What are the key metrics for evaluating microservices architecture success?"
+poetry run python -m kbol query "How does Domain-Driven Design evolve when moving from monoliths to microservices?"
 #+end_src
 
+*** Functional Programming Deep Dives
+#+begin_src bash
+# Functional Programming Concepts
+poetry run python -m kbol query "Explain monads using examples from Clojure and Scala"
+poetry run python -m kbol query "Compare approaches to immutability and state management in Python vs Clojure"
+poetry run python -m kbol query "Show patterns for combining functional and reactive programming"
+#+end_src
+
+*** Cross-Disciplinary Insights
+#+begin_src bash
+# Cross-Domain Knowledge Synthesis
+poetry run python -m kbol query "How do behavioral science insights inform better API design?"
+poetry run python -m kbol query "What principles from critical thinking apply to software architecture?"
+poetry run python -m kbol query "How do concepts from systems thinking apply across microservices and macroeconomics?"
+#+end_src
+
+*** Practical Development Examples
+#+begin_src bash
+# Practical Implementation Patterns
+poetry run python -m kbol query "Show me Clojure examples of map and reduce with real-world use cases"
+poetry run python -m kbol query "What are the best practices for testing event-driven microservices?"
+poetry run python -m kbol query "Compare Python and Clojure approaches to handling concurrency"
+#+end_src
+
+*** API and Integration Patterns
+#+begin_src bash
+# API Design and Evolution
+poetry run python -m kbol query "What patterns emerge for managing API evolution in microservices?"
+poetry run python -m kbol query "How do micro-frontends impact API design and management?"
+poetry run python -m kbol query "Compare REST, GraphQL, and event-driven API patterns"
+#+end_src
+
+These queries demonstrate the system's ability to synthesize knowledge across:
+- Software architecture and systems design
+- Functional and reactive programming paradigms  
+- Cross-disciplinary insights from philosophy and economics
+- Practical development patterns and best practices
+- Modern API and integration approaches
+
+When executed, =C-c C-v t= will tangle these examples to =scripts/example_queries.sh=, creating a ready-to-use script of example queries.
 * Implementation Details
 ** Vector Database Schema
 #+begin_src sql :tangle src/kbol/db/schema.sql
