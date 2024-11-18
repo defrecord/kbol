@@ -2,12 +2,9 @@
 #+AUTHOR: Jason Walsh
 #+EMAIL: j@wal.sh
 #+DATE: 2024-11-15
-#+PROPERTY: header-args :mkdirp yes
-#+PROPERTY: header-args:python :session kbol :results output
-#+PROPERTY: header-args:mermaid :file doc/images/flow.png
 
 * Overview
-A focused RAG (Retrieval Augmented Generation) system for programming books.
+A focused RAG (Retrieval Augmented Generation) system for programming books that lets you query and explore your technical library using natural language.
 
 #+begin_src mermaid :file doc/images/rag-flow.png
 flowchart LR
@@ -20,63 +17,8 @@ flowchart LR
     LLM --> Response[Response]
 #+end_src
 
-* Development Environment
-** Prerequisites
-:PROPERTIES:
-:header-args:shell: :results output :exports both
-:END:
-
-#+begin_src shell :tangle .envrc
-use nix
-layout poetry
-#+end_src
-
-#+begin_src nix :tangle shell.nix
-{ pkgs ? import <nixpkgs> {} }:
-
-pkgs.mkShell {
-  buildInputs = with pkgs; [
-    python311
-    poetry
-    postgresql_15
-    ollama
-    ripgrep
-  ];
-
-  shellHook = ''
-    export PYTHONPATH="$PWD:$PYTHONPATH"
-    export DATABASE_URL="postgresql://localhost:5432/kbol_db"
-    
-    if [ ! -f "poetry.lock" ]; then
-      poetry install
-    fi
-  '';
-}
-#+end_src
-
-** Quick Start
-:PROPERTIES:
-:header-args:bash: :results output :exports both
-:END:
-
-#+begin_src bash :tangle scripts/setup.sh
-#!/usr/bin/env bash
-set -euo pipefail
-
-# Enter development environment
-nix-shell
-
-# Initialize services
-docker-compose up -d
-
-# Link books
-./scripts/link_books.sh
-
-# Run demo
-./scripts/demo.sh
-#+end_src
-
-** Project Structure
+* System Architecture
+** Component Overview
 #+begin_src mermaid :file doc/images/structure.png
 graph TD
     Root[kbol/] --> Data[data/]
@@ -159,17 +101,52 @@ sequenceDiagram
     end
 #+end_src
 
-* Development
-** Running Tests
-#+begin_src bash
-poetry run pytest
-#+end_src
+* Quick Start
+1. Setup your environment:
+   #+begin_src bash
+   make setup
+   #+end_src
 
-** Local Development
-1. Start nix shell: ~nix-shell~
-2. Start services: ~docker-compose up -d~
-3. Run tests: ~make test~
-4. Process books: ~make process-books~
+2. Run the complete demo with a sample book:
+   #+begin_src bash
+   make demo
+   #+end_src
+
+3. Try some example queries:
+   #+begin_src bash
+   # Query about specific topics
+   poetry run python -m kbol query "Explain monads from the functional programming books"
+
+   # Find code examples
+   poetry run python -m kbol query "Show me Clojure examples of map and reduce"
+
+   # Compare concepts
+   poetry run python -m kbol query "Compare Python and Clojure approaches to immutability"
+   #+end_src
+
+* Development Commands
+| Command          | Description                                |
+|------------------+--------------------------------------------|
+| make setup       | Initial setup of development environment   |
+| make demo        | Run complete demo pipeline                 |
+| make load-books  | Link books from your collection           |
+| make process-books| Process books into chunks with embeddings |
+| make stats       | Show statistics about processed books      |
+| make clean       | Clean generated files and directories     |
+
+* Vector Database Schema
+The system uses a PostgreSQL database with vector similarity search capabilities:
+
+#+begin_src sql
+CREATE TABLE book_chunks (
+    id SERIAL PRIMARY KEY,
+    book_title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    embedding vector(384),
+    page_number INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+#+end_src
 
 * License
 MIT
