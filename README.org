@@ -21,21 +21,26 @@ flowchart LR
 ** Component Overview
 #+begin_src mermaid :file doc/images/structure.png
 graph TD
-    Root[kbol/] --> Data[data/]
-    Root --> Src[src/]
-    Root --> Tests[tests/]
-    Root --> Scripts[scripts/]
+    CLI[Command Line Interface] --> Core[Core Engine]
+    Core --> Indexer[Document Indexer]
+    Core --> Search[Search Engine]
+    Core --> Embedder[Embedding Service]
+    Core --> LLM[LLM Service]
     
-    Data --> Books[books/]
-    Data --> Processed[processed/]
+    Indexer --> Chunker[Text Chunker]
+    Indexer --> DocTracker[Document Tracker]
     
-    Src --> Indexer[indexer.py]
-    Src --> CLI[cli.py]
-    Src --> DB[db/]
+    Search --> DB[(Vector Database)]
     
-    Scripts --> Demo[demo.sh]
-    Scripts --> Setup[setup.sh]
-    Scripts --> Link[link_books.sh]
+    subgraph Processing Pipeline
+        Chunker --> Embedder
+        Embedder --> DB
+    end
+    
+    subgraph Query Pipeline
+        Search --> LLM
+        DB --> Search
+    end
 #+end_src
 
 * Usage
