@@ -22,7 +22,6 @@ def init_app():
     validate.register(app)
     topics.register(app)
 
-
     return app
 
 

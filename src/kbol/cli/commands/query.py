@@ -4,7 +4,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from typing import Optional
 import asyncio
-from datetime import datetime 
+from datetime import datetime
 
 from ...core.search import search_chunks
 from ...core.llm import get_completion
