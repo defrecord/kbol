@@ -1,3 +1,5 @@
+# src/kbol/tracking/document_tracker.py
+
 import hashlib
 import json
 from datetime import datetime
@@ -13,7 +15,6 @@ import asyncio
 @dataclass
 class ProcessingConfig:
     """Configuration for document processing."""
-
     chunk_size: int
     chunk_overlap: int
     embed_model: str
@@ -61,10 +62,22 @@ class DocumentTracker:
         return sha256.hexdigest()
 
     async def should_process(
-        self, file_path: Path, config: ProcessingConfig
+        self, file_path: Path, config: ProcessingConfig, force: bool = False
     ) -> Tuple[bool, Optional[str]]:
-        """Check if document needs processing."""
-        # Run file hash computation in thread pool due to I/O
+        """Check if document needs processing.
+        
+        Args:
+            file_path: Path to the document
+            config: Processing configuration
+            force: If True, ignore existing processing state
+            
+        Returns:
+            Tuple of (should_process: bool, error_message: Optional[str])
+        """
+        if force:
+            return True, None
+
+        # Run file hash computation in thread pool
         file_hash = await asyncio.get_event_loop().run_in_executor(
             None, self.compute_file_hash, file_path
         )
@@ -82,7 +95,7 @@ class DocumentTracker:
                           AND chunk_overlap = %s
                           AND embed_model = %s
                           AND processor_version = %s
-                    """,
+                        """,
                         (
                             str(file_path),
                             file_hash,
@@ -116,7 +129,17 @@ class DocumentTracker:
         error_message: Optional[str] = None,
         metadata: Optional[Dict] = None,
     ):
-        """Record document processing results."""
+        """Record document processing results.
+        
+        Args:
+            file_path: Path to the processed document
+            config: Processing configuration used
+            chunks_count: Number of chunks generated
+            total_tokens: Total tokens processed
+            status: Processing status ("completed" or "failed")
+            error_message: Optional error message if processing failed
+            metadata: Optional additional metadata
+        """
         file_hash = await asyncio.get_event_loop().run_in_executor(
             None, self.compute_file_hash, file_path
         )
@@ -130,7 +153,7 @@ class DocumentTracker:
                         INSERT INTO processor_versions (version_hash, config_json)
                         VALUES (%s, %s)
                         ON CONFLICT (version_hash) DO NOTHING
-                    """,
+                        """,
                         (config.processor_version, Json(asdict(config))),
                     )
 
@@ -154,7 +177,7 @@ class DocumentTracker:
                             error_message = EXCLUDED.error_message,
                             metadata = EXCLUDED.metadata,
                             processed_at = CURRENT_TIMESTAMP
-                    """,
+                        """,
                         (
                             str(file_path),
                             file_hash,
@@ -170,5 +193,31 @@ class DocumentTracker:
                         ),
                     )
 
+                    conn.commit()
+
         # Run database operations in thread pool
         await asyncio.get_event_loop().run_in_executor(None, _record_db)
+
+    async def reset_tracking(self):
+        """Reset all tracking information.
+        
+        This removes all processing records but keeps version history.
+        """
+        def _reset_db():
+            with psycopg2.connect(self.db_url) as conn:
+                with conn.cursor() as cur:
+                    cur.execute("DELETE FROM processed_documents")
+                    conn.commit()
+
+        await asyncio.get_event_loop().run_in_executor(None, _reset_db)
+
+    async def clear_all(self):
+        """Clear all tracking data including version history."""
+        def _clear_db():
+            with psycopg2.connect(self.db_url) as conn:
+                with conn.cursor() as cur:
+                    cur.execute("DELETE FROM processed_documents")
+                    cur.execute("DELETE FROM processor_versions")
+                    conn.commit()
+
+        await asyncio.get_event_loop().run_in_executor(None, _clear_db)

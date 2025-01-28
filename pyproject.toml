@@ -18,7 +18,12 @@ typer = "^0.9.0"
 numpy = "^2.1.3"
 black = "^24.10.0"
 scikit-learn = "^1.4.0"
+backoff = "^2.2.1"
+prompt-toolkit = "^3.0.50"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+kbol = "kbol.__main__:app"

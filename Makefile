@@ -29,26 +29,26 @@ setup: ## Initial setup of development environment
 	@mkdir -p $(BOOKS_DIR) $(PROCESSED_DIR)
 	@echo "$(GREEN)Setup complete!$(NC)"
 
+repl: ## Start interactive REPL
+	@echo "$(CYAN)Starting KBOL REPL...$(NC)"
+	@poetry run kbol repl --model deepseek-r1 
+
 demo: setup ## Run complete demo pipeline with sample book
 	@echo "$(CYAN)Running demo pipeline...$(NC)"
 	@echo ""
 	@echo "$(YELLOW)1. Linking sample books...$(NC)"
 	./scripts/link_books.sh
 	@echo ""
-	
 	@echo "$(YELLOW)2. Processing books with embeddings...$(NC)"
 	poetry run python -m kbol process
 	@echo ""
-	
 	@echo "$(YELLOW)3. Showing statistics...$(NC)"
 	poetry run python -m kbol stats
 	@echo ""
-	
 	@echo "$(YELLOW)4. Generating documentation...$(NC)"
 	poetry run python -m kbol prompt . -o README-phi3.md
 	poetry run python -m kbol convert README-phi3.md -t org
 	@echo ""
-	
 	@echo "$(GREEN)Demo pipeline complete! Check:$(NC)"
 	@echo "- $(BOOKS_DIR) for linked books"
 	@echo "- $(PROCESSED_DIR) for processed chunks"

@@ -1,16 +1,18 @@
-import httpx
+# src/kbol/core/embedding.py
+
 from typing import List
 import numpy as np
+from .http import create_client, get_ollama_url
 
 
-async def get_embedding(text: str, url: str = "http://localhost:11434") -> List[float]:
+async def get_embedding(text: str) -> List[float]:
     """Get embedding for query text."""
-    async with httpx.AsyncClient() as client:
+    url = get_ollama_url()
+    async with await create_client(timeout=30.0) as client:
         try:
             response = await client.post(
                 f"{url}/api/embeddings",
                 json={"model": "nomic-embed-text", "prompt": text},
-                timeout=30.0,
             )
             response.raise_for_status()
             result = response.json()

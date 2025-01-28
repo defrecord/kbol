@@ -234,11 +234,13 @@ class BookIndexer:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(chunks, f, ensure_ascii=False, indent=2)
 
-    async def process_books(self, books_dir: Path) -> List[Dict]:
+
+    async def process_books(self, books_dir: Path, *, force: bool = False) -> List[Dict]:
         """Process all PDFs in directory with caching support.
 
         Args:
             books_dir: Directory containing PDF files
+            force: If True, force reprocessing of all books regardless of state
 
         Returns:
             List of all processed chunks
@@ -254,7 +256,8 @@ class BookIndexer:
         with create_progress() as progress_bar:
             for pdf_file in pdf_files:
                 try:
-                    chunks = await self.process_pdf(pdf_file, progress_bar)
+                    # Pass force parameter through to process_pdf
+                    chunks = await self.process_pdf(pdf_file, progress_bar, force=force)
                     all_chunks.extend(chunks)
                 except Exception as e:
                     self.console.print(
@@ -279,8 +282,8 @@ class BookIndexer:
                     • Total Chunks: {self.stats['total_chunks']}
                     • Total Tokens: {self.stats['total_tokens']:,}
                     • Failed Chunks: {self.stats['failed_chunks']}
-                    • Average Chunk Size: {(avg := self.stats['total_tokens'] / self.stats['total_chunks'] if self.stats['total_chunks'] else 0):.0f} tokens
-                    • Processing Rate: {self.stats['total_tokens'] / total_time:.0f} tokens/second""",
+                    • Average Chunk Size: {(self.stats['total_tokens'] // (self.stats['total_chunks'] or 1)):.0f} tokens
+                    • Processing Rate: {(self.stats['total_tokens'] // (total_time or 1)):.0f} tokens/second""",
                     title="Processing Statistics",
                     border_style="green",
                 )
@@ -289,6 +292,151 @@ class BookIndexer:
             self.console.print("[yellow]No new chunks were processed.[/yellow]")
 
         return all_chunks
+
+# src/kbol/indexer/core/processor.py
+
+    async def process_pdf(
+        self, 
+        pdf_path: Path, 
+        progress_bar: progress.Progress,
+        force: bool = False
+    ) -> List[Dict]:
+        """Process a single PDF file with caching support.
+
+        Args:
+            pdf_path: Path to the PDF file
+            progress_bar: Progress bar instance for tracking
+            force: If True, force reprocessing regardless of state
+
+        Returns:
+            List of processed chunks with embeddings
+        """
+        try:
+            # Check if we need to process this file
+            should_process, error = await self.tracker.should_process(
+                pdf_path, 
+                self.config,
+                force=force
+            )
+
+            if not should_process:
+                self.console.print(
+                    f"[yellow]Skipping {pdf_path.name} - already processed[/yellow]"
+                )
+                self.stats["skipped_books"] += 1
+                return []
+
+            if error:
+                self.console.print(
+                    f"[yellow]Retrying {pdf_path.name} - previous attempt failed: {error}[/yellow]"
+                )
+
+            # Setup progress tracking
+            try:
+                reader = PdfReader(pdf_path)
+            except Exception as e:
+                self.console.print(f"[red]Error reading PDF {pdf_path.name}: {str(e)}[/red]")
+                await self.tracker.record_processing(
+                    file_path=pdf_path,
+                    config=self.config,
+                    chunks_count=0,
+                    total_tokens=0,
+                    status="failed",
+                    error_message=f"Failed to read PDF: {str(e)}",
+                )
+                return []
+
+            chunks = []
+            output_path = Path("data/processed") / f"{pdf_path.stem}.json"
+            temp_path = output_path.with_suffix(".tmp.json")
+
+            # Initialize progress bars
+            total_pages = len(reader.pages)
+            main_task = progress_bar.add_task(
+                f"[cyan]Processing {pdf_path.name}[/cyan]", total=total_pages
+            )
+
+            try:
+                start_time = datetime.now()
+
+                for page_num, page in enumerate(reader.pages, 1):
+                    # Extract and chunk text
+                    text = page.extract_text()
+                    if not text.strip():
+                        progress_bar.advance(main_task)
+                        continue
+
+                    page_chunks = self.chunker.chunk_text(text)
+                    if not page_chunks:
+                        progress_bar.advance(main_task)
+                        continue
+
+                    # Process chunks
+                    processed_chunks = await self._process_chunks(
+                        chunks=page_chunks,
+                        page_num=page_num,
+                        book_name=pdf_path.stem,
+                        progress_bar=progress_bar,
+                        task_id=main_task,
+                    )
+                    chunks.extend(processed_chunks or [])
+
+                    # Save intermediate results periodically
+                    if page_num % 10 == 0:
+                        self._save_chunks(temp_path, chunks)
+
+                    progress_bar.advance(main_task)
+
+                # Save final results
+                if chunks:  # Only save if we have processed chunks
+                    output_path.parent.mkdir(parents=True, exist_ok=True)
+                    self._save_chunks(output_path, chunks)
+                temp_path.unlink(missing_ok=True)
+
+                # Record successful processing
+                processing_time = (datetime.now() - start_time).total_seconds()
+                self.stats["processing_time"] += processing_time
+
+                await self.tracker.record_processing(
+                    file_path=pdf_path,
+                    config=self.config,
+                    chunks_count=len(chunks),
+                    total_tokens=sum(c["token_count"] for c in chunks),
+                    metadata={
+                        "pages_processed": total_pages,
+                        "processing_time_seconds": processing_time,
+                        "average_chunk_size": (
+                            sum(c["token_count"] for c in chunks) / len(chunks)
+                            if chunks
+                            else 0
+                        ),
+                    },
+                )
+
+                self.stats["processed_books"] += 1
+                return chunks
+
+            except Exception as e:
+                # Record failed processing
+                await self.tracker.record_processing(
+                    file_path=pdf_path,
+                    config=self.config,
+                    chunks_count=0,
+                    total_tokens=0,
+                    status="failed",
+                    error_message=str(e),
+                )
+                # Clean up temp file
+                temp_path.unlink(missing_ok=True)
+                raise
+
+            finally:
+                # Always clean up the progress bar
+                progress_bar.remove_task(main_task)
+
+        except Exception as e:
+            self.console.print(f"[red]Error processing {pdf_path.name}: {str(e)}[/red]")
+            return []  # Return empty list on error instead of None
 
     @classmethod
     def create_with_env(cls, **overrides) -> "BookIndexer":

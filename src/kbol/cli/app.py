@@ -13,7 +13,7 @@ console = Console()
 def init_app():
     """Initialize CLI application."""
     # Import commands here to avoid circular imports
-    from .commands import process, query, stats, list, validate, topics, prompt, convert
+    from .commands import process, query, stats, list, validate, topics, prompt, convert, repl
 
     # Register commands
     process.register(app)
@@ -24,6 +24,7 @@ def init_app():
     topics.register(app)
     prompt.register(app)
     convert.register(app)
+    repl.register(app)
 
     return app
 

@@ -1,15 +1,17 @@
-# Copy this file to .envrc and adjust values as needed
-export PYTHONPATH=$PWD:$PYTHONPATH
+# Database configuration
+DATABASE_URL=postgresql://kbol_user:kbol_pass@localhost:5432/kbol_db
 
-# Database configuration matching docker-compose.yml
-export DATABASE_URL="postgresql://kbol_user:kbol_pass@localhost:5432/kbol_db"
+# Ollama configuration
+OLLAMA_HOST=http://localhost:11434
 
-# Optional: Ollama configuration
-export OLLAMA_HOST="http://localhost:11434"
+# Debug proxy settings
+# HTTPS_PROXY=http://localhost:8080
+# HTTP_PROXY=http://localhost:8080
 
-# Optional: Debug settings
-# export DEBUG=1
-# export LOG_LEVEL=DEBUG
+# Debug settings
+# DEBUG=1
+# LOG_LEVEL=DEBUG
 
-# Optional: Custom book directory
-# export BOOKS_DIR="$HOME/books"
+# Custom paths
+# BOOKS_DIR=/path/to/books
+# PROCESSED_DIR=/path/to/processed

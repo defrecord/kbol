@@ -1,3 +1,5 @@
+# src/kbol/cli/commands/process.py
+
 import typer
 from rich.console import Console
 from pathlib import Path
@@ -13,14 +15,18 @@ async def process_impl(
     chunk_size: int,
     chunk_overlap: int,
     model: str,
+    force: bool = False,
 ):
     """Implementation of process command."""
     indexer = BookIndexer(
-        embed_model=model, chunk_size=chunk_size, chunk_overlap=chunk_overlap
+        embed_model=model, 
+        chunk_size=chunk_size, 
+        chunk_overlap=chunk_overlap
     )
 
     try:
-        results = await indexer.process_books(books_dir)
+        # Pass force flag to the indexer
+        results = await indexer.process_books(books_dir, force=force)
         console.print(
             f"[green]Processed {len(results)} chunks from "
             f"{len(set(c['book'] for c in results))} books[/green]"
@@ -48,6 +54,12 @@ def register(app: typer.Typer):
         model: str = typer.Option(
             "nomic-embed-text", "--model", help="Embedding model to use"
         ),
+        force: bool = typer.Option(
+            False, 
+            "--force", 
+            "-f", 
+            help="Force reprocessing of already processed books"
+        ),
     ):
         """Process PDFs into chunks with embeddings.
 
@@ -55,12 +67,25 @@ def register(app: typer.Typer):
             kbol process
             kbol process --chunk-size 256 --overlap 25
             kbol process --model nomic-embed-text data/books
+            kbol process --force  # Reprocess all books
+            kbol process --force --chunk-size 256  # Reprocess with different settings
         """
-        asyncio.run(
-            process_impl(
-                books_dir=books_dir,
-                chunk_size=chunk_size,
-                chunk_overlap=chunk_overlap,
-                model=model,
+        try:
+            # Make sure the output directory exists
+            Path("data/processed").mkdir(parents=True, exist_ok=True)
+            
+            asyncio.run(
+                process_impl(
+                    books_dir=books_dir,
+                    chunk_size=chunk_size,
+                    chunk_overlap=chunk_overlap,
+                    model=model,
+                    force=force,
+                )
             )
-        )
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Processing interrupted by user[/yellow]")
+            raise typer.Exit(130)
+        except Exception as e:
+            console.print(f"[red]Fatal error: {str(e)}[/red]")
+            raise typer.Exit(1)
