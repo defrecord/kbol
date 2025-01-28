@@ -279,7 +279,7 @@ class BookIndexer:
                     • Total Chunks: {self.stats['total_chunks']}
                     • Total Tokens: {self.stats['total_tokens']:,}
                     • Failed Chunks: {self.stats['failed_chunks']}
-                    • Average Chunk Size: {self.stats['total_tokens'] / self.stats['total_chunks']:.0f} tokens
+                    • Average Chunk Size: {(avg := self.stats['total_tokens'] / self.stats['total_chunks'] if self.stats['total_chunks'] else 0):.0f} tokens
                     • Processing Rate: {self.stats['total_tokens'] / total_time:.0f} tokens/second""",
                     title="Processing Statistics",
                     border_style="green",

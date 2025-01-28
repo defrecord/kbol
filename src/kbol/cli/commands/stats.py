@@ -6,7 +6,6 @@ from rich.table import Table
 
 console = Console()
 
-
 def register(app: typer.Typer):
     """Register stats command with the CLI app."""
 
@@ -15,9 +14,18 @@ def register(app: typer.Typer):
         """Show statistics about processed books."""
         processed_dir = Path("data/processed")
 
-        if not processed_dir.exists() or not list(processed_dir.glob("*.json")):
+        # Create directory if it doesn't exist
+        processed_dir.mkdir(parents=True, exist_ok=True)
+
+        json_files = list(processed_dir.glob("*.json"))
+        if not json_files:
             console.print(
-                "[yellow]No processed books found. Run 'kbol process' first.[/yellow]"
+                "[yellow]No processed files found in data/processed/.[/yellow]\n"
+                "This could mean either:\n"
+                "1. No books have been processed yet\n"
+                "2. All books were skipped (already processed)\n"
+                "3. The output directory is not in the expected location\n\n"
+                "Try running 'kbol process' with some new PDFs."
             )
             return
 
@@ -35,13 +43,16 @@ def register(app: typer.Typer):
         total_chunks = 0
         total_tokens = 0
 
-        for json_file in processed_dir.glob("*.json"):
+        for json_file in json_files:
             try:
                 with open(json_file) as f:
                     chunks = json.load(f)
+                    if not chunks:  # Skip empty files
+                        continue
+                        
                     chunk_count = len(chunks)
                     token_count = sum(c["token_count"] for c in chunks)
-                    avg_chunk = token_count // chunk_count if chunk_count else 0
+                    avg_chunk = token_count // (chunk_count or 1)
 
                     table.add_row(
                         json_file.stem,
@@ -61,8 +72,10 @@ def register(app: typer.Typer):
                 "TOTAL",
                 str(total_chunks),
                 f"{total_tokens:,}",
-                str(total_tokens // total_chunks if total_chunks else 0),
+                str(total_tokens // (total_chunks or 1)),
                 style="bold",
             )
+            console.print(table)
+        else:
+            console.print("[yellow]No chunk data found in processed files.[/yellow]")
 
-        console.print(table)

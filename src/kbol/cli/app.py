@@ -1,3 +1,5 @@
+# src/kbol/cli/app.py
+
 import typer
 from rich.console import Console
 
@@ -8,11 +10,10 @@ app = typer.Typer(
 )
 console = Console()
 
-
 def init_app():
     """Initialize CLI application."""
     # Import commands here to avoid circular imports
-    from .commands import process, query, stats, list, validate, topics
+    from .commands import process, query, stats, list, validate, topics, prompt, convert
 
     # Register commands
     process.register(app)
@@ -21,9 +22,10 @@ def init_app():
     list.register(app)
     validate.register(app)
     topics.register(app)
+    prompt.register(app)
+    convert.register(app)
 
     return app
-
 
 # For direct use
 app = init_app()

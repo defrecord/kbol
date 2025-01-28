@@ -17,13 +17,13 @@ services:
       timeout: 5s
       retries: 5
 
-  # Optional adminer for database management
-  adminer:
-    image: adminer
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
+  # # Optional adminer for database management
+  # adminer:
+  #   image: adminer
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - db
 
 volumes:
   postgres_data:
