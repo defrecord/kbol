@@ -44,14 +44,6 @@ async def repl_impl(
     )
 
     console.print("[cyan]KBOL Interactive Query REPL[/cyan]")
-    console.print("""Tips:
-• Use ↑↓ to navigate history
-• Ctrl+R to search history
-• Ctrl+A/E to move to start/end
-• Ctrl+K to clear after cursor
-• Ctrl+U to clear line
-• Type 'exit' or press Ctrl+D to quit
-""")
 
     while True:
         try:

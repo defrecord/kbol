@@ -29,9 +29,23 @@ setup: ## Initial setup of development environment
 	@mkdir -p $(BOOKS_DIR) $(PROCESSED_DIR)
 	@echo "$(GREEN)Setup complete!$(NC)"
 
-repl: ## Start interactive REPL
+# Colors and settings as before...
+
+.PHONY: help setup demo process-books stats repl deps query
+
+query: deps ## Query the knowledge base
+	@poetry run kbol query $(filter-out $@,$(MAKECMDGOALS))
+
+process: deps ## Process books into chunks with embeddings
+	@poetry run kbol process $(filter-out $@,$(MAKECMDGOALS))
+
+repl: deps ## Start interactive REPL
 	@echo "$(CYAN)Starting KBOL REPL...$(NC)"
-	@poetry run kbol repl --model deepseek-r1 
+	@PYTHONWARNINGS=ignore poetry run kbol repl --show-context --model deepseek-r1 
+
+# Allow passing arguments through to query target
+%:
+	@:
 
 demo: setup ## Run complete demo pipeline with sample book
 	@echo "$(CYAN)Running demo pipeline...$(NC)"
