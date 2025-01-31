@@ -69,41 +69,41 @@ Below are powerful example queries that leverage the diverse technical and theor
 *** Technical Architecture Queries
 #+begin_src bash
 # Technical Architecture Patterns
-poetry run python -m kbol query "Compare event-driven, flow-based, and microservice architectural patterns"
-poetry run python -m kbol query "What are the key metrics for evaluating microservices architecture success?"
-poetry run python -m kbol query "How does Domain-Driven Design evolve when moving from monoliths to microservices?"
+poetry run kbol query "Compare event-driven, flow-based, and microservice architectural patterns"
+poetry run kbol query "What are the key metrics for evaluating microservices architecture success?"
+poetry run kbol query "How does Domain-Driven Design evolve when moving from monoliths to microservices?"
 #+end_src
 
 *** Functional Programming Deep Dives
 #+begin_src bash
 # Functional Programming Concepts
-poetry run python -m kbol query "Explain monads using examples from Clojure and Scala"
-poetry run python -m kbol query "Compare approaches to immutability and state management in Python vs Clojure"
-poetry run python -m kbol query "Show patterns for combining functional and reactive programming"
+poetry run kbol query "Explain monads using examples from Clojure and Scala"
+poetry run kbol query "Compare approaches to immutability and state management in Python vs Clojure"
+poetry run kbol query "Show patterns for combining functional and reactive programming"
 #+end_src
 
 *** Cross-Disciplinary Insights
 #+begin_src bash
 # Cross-Domain Knowledge Synthesis
-poetry run python -m kbol query "How do behavioral science insights inform better API design?"
-poetry run python -m kbol query "What principles from critical thinking apply to software architecture?"
-poetry run python -m kbol query "How do concepts from systems thinking apply across microservices and macroeconomics?"
+poetry run kbol query "How do behavioral science insights inform better API design?"
+poetry run kbol query "What principles from critical thinking apply to software architecture?"
+poetry run kbol query "How do concepts from systems thinking apply across microservices and macroeconomics?"
 #+end_src
 
 *** Practical Development Examples
 #+begin_src bash
 # Practical Implementation Patterns
-poetry run python -m kbol query "Show me Clojure examples of map and reduce with real-world use cases"
-poetry run python -m kbol query "What are the best practices for testing event-driven microservices?"
-poetry run python -m kbol query "Compare Python and Clojure approaches to handling concurrency"
+poetry run kbol query "Show me Clojure examples of map and reduce with real-world use cases"
+poetry run kbol query "What are the best practices for testing event-driven microservices?"
+poetry run kbol query "Compare Python and Clojure approaches to handling concurrency"
 #+end_src
 
 *** API and Integration Patterns
 #+begin_src bash
 # API Design and Evolution
-poetry run python -m kbol query "What patterns emerge for managing API evolution in microservices?"
-poetry run python -m kbol query "How do micro-frontends impact API design and management?"
-poetry run python -m kbol query "Compare REST, GraphQL, and event-driven API patterns"
+poetry run kbol query "What patterns emerge for managing API evolution in microservices?"
+poetry run kbol query "How do micro-frontends impact API design and management?"
+poetry run kbol query "Compare REST, GraphQL, and event-driven API patterns"
 #+end_src
 
 These queries demonstrate the system's ability to synthesize knowledge across:
@@ -114,6 +114,100 @@ These queries demonstrate the system's ability to synthesize knowledge across:
 - Modern API and integration approaches
 
 When executed, =C-c C-v t= will tangle these examples to =scripts/example_queries.sh=, creating a ready-to-use script of example queries.
+** Example Knowledge Base Queries
+:PROPERTIES:
+:header-args:bash: :results output :exports both
+:END:
+
+*** ML/AI Foundations
+#+begin_src bash
+# Check ML Engineering fundamentals
+poetry run kbol query "What does the book 'Machine Learning Engineering with Python' cover about MLOps and production deployment?"
+
+# Verify feature engineering coverage
+poetry run kbol query "What practical examples are shown in 'Python Feature Engineering Cookbook'?"
+#+end_src
+
+*** LLM and NLP Content
+#+begin_src bash
+# Compare LLM books
+poetry run kbol query "How do 'Building LLM Powered Applications' and the 'LLM Engineer's Handbook' differ in their coverage of LLM implementation?"
+
+# Explore NLP progression
+poetry run kbol query "How does 'Mastering NLP from Foundations to LLMs' structure the learning path from basic NLP to advanced LLMs?"
+#+end_src
+
+*** Specialized ML Techniques
+#+begin_src bash
+# XGBoost applications
+poetry run kbol query "What are the key concepts covered in 'XGBoost for Regression Predictive Modeling' regarding time series analysis?"
+
+# Genetic algorithms
+poetry run kbol query "What practical Python examples are provided in 'Hands-On Genetic Algorithms with Python'?"
+#+end_src
+
+*** Deep Learning and PyTorch
+#+begin_src bash
+# PyTorch mastery
+poetry run kbol query "What advanced PyTorch concepts are covered in 'Mastering PyTorch' versus basic implementations?"
+
+# Compare implementations
+poetry run kbol query "How does 'Machine Learning with PyTorch and Scikit-Learn' approach model development differently from 'Mastering PyTorch'?"
+#+end_src
+
+*** RAG and Vector Systems
+#+begin_src bash
+# RAG implementation
+poetry run kbol query "How does 'RAG-Driven Generative AI' approach vector databases and embedding strategies?"
+
+# Architecture considerations
+poetry run kbol query "What are the main architectural patterns discussed in 'RAG-Driven Generative AI' for building production RAG systems?"
+#+end_src
+
+*** Causal Inference
+#+begin_src bash
+# Compare approaches
+poetry run kbol query "Compare the approaches to causal inference between 'Causal Inference and Discovery in Python' and 'Causal Inference in R'"
+
+# Implementation details
+poetry run kbol query "What practical examples are provided in 'Causal Inference and Discovery in Python' for causal discovery?"
+#+end_src
+
+*** AI Security
+#+begin_src bash
+# Security applications
+poetry run kbol query "What cybersecurity use cases are covered in 'Artificial Intelligence for Cybersecurity'?"
+
+# Implementation patterns
+poetry run kbol query "What are the main security patterns and frameworks discussed in 'Artificial Intelligence for Cybersecurity'?"
+#+end_src
+
+*** Mathematical Foundations
+#+begin_src bash
+# Math concepts
+poetry run kbol query "What statistical concepts from '15 Math Concepts Every Data Scientist Should Know' are applied in 'Bayesian Analysis with Python'?"
+
+# Bayesian applications
+poetry run kbol query "How does 'Bayesian Analysis with Python' implement MCMC sampling in practice?"
+#+end_src
+
+*** Time Series Analysis
+#+begin_src bash
+# Forecasting techniques
+poetry run kbol query "How does 'Modern Time Series Forecasting with Python' handle different forecasting techniques?"
+
+# Implementation patterns
+poetry run kbol query "What are the main architectural patterns for time series prediction discussed in 'Modern Time Series Forecasting with Python'?"
+#+end_src
+
+*** Reinforcement Learning
+#+begin_src bash
+# Implementation examples
+poetry run kbol query "What practical implementations are covered in 'Deep Reinforcement Learning Hands-On'?"
+
+# Advanced concepts
+poetry run kbol query "How does 'Deep Reinforcement Learning Hands-On' approach advanced topics like multi-agent systems?"
+#+end_src
 * Implementation Details
 ** Vector Database Schema
 #+begin_src sql :tangle src/kbol/db/schema.sql
@@ -163,13 +257,13 @@ sequenceDiagram
 3. Try some example queries:
    #+begin_src bash
    # Query about specific topics
-   poetry run python -m kbol query "Explain monads from the functional programming books"
+   poetry run kbol query "Explain monads from the functional programming books"
 
    # Find code examples
-   poetry run python -m kbol query "Show me Clojure examples of map and reduce"
+   poetry run kbol query "Show me Clojure examples of map and reduce"
 
    # Compare concepts
-   poetry run python -m kbol query "Compare Python and Clojure approaches to immutability"
+   poetry run kbol query "Compare Python and Clojure approaches to immutability"
    #+end_src
 
 * Development Commands
