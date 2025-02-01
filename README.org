@@ -120,19 +120,51 @@ When executed, =C-c C-v t= will tangle these examples to =scripts/example_querie
 :END:
 
 *** ML/AI Foundations
-#+begin_src bash
+#+begin_src bash :tangle data/answers/foundations_mlp.sh :mkdirp t
 # Check ML Engineering fundamentals
-poetry run kbol query "What does the book 'Machine Learning Engineering with Python' cover about MLOps and production deployment?"
-
-# Verify feature engineering coverage
-poetry run kbol query "What practical examples are shown in 'Python Feature Engineering Cookbook'?"
+time poetry run kbol query "What does the book 'Machine Learning Engineering with Python' cover about MLOps and production deployment?" | tee data/answers/foundations-mlp.md | head 
 #+end_src
+
+#+RESULTS:
+#+begin_example
+
+Found relevant content in:
+• MLOps_Engineering_at_Scale
+• machinelearningengineeringwithpython_secondedition
+• tinymlcookbook
+
+Generating response...
+╭─────────────────────────────────── Answer ───────────────────────────────────╮
+│ The book "Machine Learning Engineering with Python" by Andrew P. McMahon     │
+│ covers various aspects of ML Ops (MLOps) as well as how to deploy machine    │
+#+end_example
+
+#+begin_src bash :tangle data/answers/foundations_fe.sh :mkdirp t
+# Verify feature engineering coverage
+poetry run kbol query "What practical examples are shown in 'Python Feature Engineering Cookbook'?" | tee data/answers/foundations-fe.md | head 
+#+end_src
+
+#+RESULTS:
+#+begin_example
+
+Found relevant content in:
+• 15mathconceptseverydatascientistshouldknow
+• Deep_Learning_with_Python
+• Practices_of_the_Python_Pro
+• machinelearningengineeringwithpython_secondedition
+
+Generating response...
+╭─────────────────────────────────── Answer ───────────────────────────────────╮
+│ The "Python Feature Engineering Cookbook" provides a range of real-world,    │
+#+end_example
 
 *** LLM and NLP Content
 #+begin_src bash
 # Compare LLM books
 poetry run kbol query "How do 'Building LLM Powered Applications' and the 'LLM Engineer's Handbook' differ in their coverage of LLM implementation?"
+#+end_src
 
+#+begin_src bash
 # Explore NLP progression
 poetry run kbol query "How does 'Mastering NLP from Foundations to LLMs' structure the learning path from basic NLP to advanced LLMs?"
 #+end_src
@@ -141,7 +173,9 @@ poetry run kbol query "How does 'Mastering NLP from Foundations to LLMs' structu
 #+begin_src bash
 # XGBoost applications
 poetry run kbol query "What are the key concepts covered in 'XGBoost for Regression Predictive Modeling' regarding time series analysis?"
+#+end_src
 
+#+begin_src bash
 # Genetic algorithms
 poetry run kbol query "What practical Python examples are provided in 'Hands-On Genetic Algorithms with Python'?"
 #+end_src
@@ -150,7 +184,9 @@ poetry run kbol query "What practical Python examples are provided in 'Hands-On 
 #+begin_src bash
 # PyTorch mastery
 poetry run kbol query "What advanced PyTorch concepts are covered in 'Mastering PyTorch' versus basic implementations?"
+#+end_src
 
+#+begin_src bash
 # Compare implementations
 poetry run kbol query "How does 'Machine Learning with PyTorch and Scikit-Learn' approach model development differently from 'Mastering PyTorch'?"
 #+end_src
@@ -159,7 +195,9 @@ poetry run kbol query "How does 'Machine Learning with PyTorch and Scikit-Learn'
 #+begin_src bash
 # RAG implementation
 poetry run kbol query "How does 'RAG-Driven Generative AI' approach vector databases and embedding strategies?"
+#+end_src
 
+#+begin_src bash
 # Architecture considerations
 poetry run kbol query "What are the main architectural patterns discussed in 'RAG-Driven Generative AI' for building production RAG systems?"
 #+end_src
@@ -168,7 +206,9 @@ poetry run kbol query "What are the main architectural patterns discussed in 'RA
 #+begin_src bash
 # Compare approaches
 poetry run kbol query "Compare the approaches to causal inference between 'Causal Inference and Discovery in Python' and 'Causal Inference in R'"
+#+end_src
 
+#+begin_src bash
 # Implementation details
 poetry run kbol query "What practical examples are provided in 'Causal Inference and Discovery in Python' for causal discovery?"
 #+end_src
@@ -177,7 +217,9 @@ poetry run kbol query "What practical examples are provided in 'Causal Inference
 #+begin_src bash
 # Security applications
 poetry run kbol query "What cybersecurity use cases are covered in 'Artificial Intelligence for Cybersecurity'?"
+#+end_src
 
+#+begin_src bash
 # Implementation patterns
 poetry run kbol query "What are the main security patterns and frameworks discussed in 'Artificial Intelligence for Cybersecurity'?"
 #+end_src
@@ -186,7 +228,9 @@ poetry run kbol query "What are the main security patterns and frameworks discus
 #+begin_src bash
 # Math concepts
 poetry run kbol query "What statistical concepts from '15 Math Concepts Every Data Scientist Should Know' are applied in 'Bayesian Analysis with Python'?"
+#+end_src
 
+#+begin_src bash
 # Bayesian applications
 poetry run kbol query "How does 'Bayesian Analysis with Python' implement MCMC sampling in practice?"
 #+end_src
@@ -195,7 +239,9 @@ poetry run kbol query "How does 'Bayesian Analysis with Python' implement MCMC s
 #+begin_src bash
 # Forecasting techniques
 poetry run kbol query "How does 'Modern Time Series Forecasting with Python' handle different forecasting techniques?"
+#+end_src
 
+#+begin_src bash
 # Implementation patterns
 poetry run kbol query "What are the main architectural patterns for time series prediction discussed in 'Modern Time Series Forecasting with Python'?"
 #+end_src
@@ -204,7 +250,9 @@ poetry run kbol query "What are the main architectural patterns for time series 
 #+begin_src bash
 # Implementation examples
 poetry run kbol query "What practical implementations are covered in 'Deep Reinforcement Learning Hands-On'?"
+#+end_src
 
+#+begin_src bash
 # Advanced concepts
 poetry run kbol query "How does 'Deep Reinforcement Learning Hands-On' approach advanced topics like multi-agent systems?"
 #+end_src

@@ -83,39 +83,43 @@ link_if_matches() {
     local filename=$(basename "$book")
     local matched=0
     local filesize
-    
-    # Skip known non-technical PDFs
-    if [[ "$filename" =~ ^[0-9]{9,} ]]; then
-        return
-    fi
-    
-    # Get file size
-    filesize=$(get_filesize "$book")
-    
-    # Skip if file is too small
-    if [ "$filesize" -lt 100000 ]; then  # Skip files smaller than 100KB
-        echo "[SKIPPED: TOO SMALL] $filename ($(format_size $filesize))"
-        return
-    fi
-    
-    # Try to match against patterns
-    for pattern in "${LANGUAGES[@]}" "${ARCHITECTURE[@]}" "${COMPUTER_SCIENCE[@]}" \
-                  "${AI_ML[@]}" "${INFRASTRUCTURE[@]}" "${DEVELOPMENT[@]}" \
-                  "${PHILOSOPHY[@]}" "${DATA[@]}"; do
-        if [[ "$filename" == ${pattern} ]]; then
-            if [ -L "$TARGET_DIR/$filename" ]; then
-                rm "$TARGET_DIR/$filename"
-            fi
-            ln -sf "$book" "$TARGET_DIR/$filename"
-            echo "[LINKED] $filename ($(format_size $filesize))"
-            matched=1
-            break
+
+    # Check if link already exists
+    if [[ -L "$TARGET_DIR/$filename" ]]; then
+        # Optional: Check if it points to the same target
+        if [[ "$(readlink "$TARGET_DIR/$filename")" == "$book" ]]; then
+            return
         fi
-    done
-    
-    if [[ $matched -eq 0 ]]; then
-        echo "[SKIPPED] $filename ($(format_size $filesize))"
     fi
+
+    ln -sf "$book" "$TARGET_DIR/$filename"
+    filesize=$(get_filesize "$book")
+    echo "[LINKED] $filename ($(format_size $filesize))"
+
+    # # Skip if file is too small
+    # if [ "$filesize" -lt 100000 ]; then  # Skip files smaller than 100KB
+    #     echo "[SKIPPED: TOO SMALL] $filename ($(format_size $filesize))"
+    #     return
+    # fi
+    
+    # # Try to match against patterns
+    # for pattern in "${LANGUAGES[@]}" "${ARCHITECTURE[@]}" "${COMPUTER_SCIENCE[@]}" \
+    #               "${AI_ML[@]}" "${INFRASTRUCTURE[@]}" "${DEVELOPMENT[@]}" \
+    #               "${PHILOSOPHY[@]}" "${DATA[@]}"; do
+    #     if [[ "$filename" == ${pattern} ]]; then
+    #         if [ -L "$TARGET_DIR/$filename" ]; then
+    #             rm "$TARGET_DIR/$filename"
+    #         fi
+    #         ln -sf "$book" "$TARGET_DIR/$filename"
+    #         echo "[LINKED] $filename ($(format_size $filesize))"
+    #         matched=1
+    #         break
+    #     fi
+    # done
+    
+    # if [[ $matched -eq 0 ]]; then
+    #     echo "[SKIPPED] $filename ($(format_size $filesize))"
+    # fi
 }
 
 echo "Linking books to $TARGET_DIR..."
